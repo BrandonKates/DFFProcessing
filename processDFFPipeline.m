@@ -1,36 +1,22 @@
 clear;
 close all;
-%% READ IN FILES AUTOMATICALLY, pick as many json files as you want.
-% Implement automatically choosing files using the filesystem. (Finds all
-% json files in subdirectories).
+%%Uses a single json file that contains only the centroids, and loads in
+%%dff, Cd, and Sp mat files from directory
+% Json files are assumed to have centroid field, and nothing else is
+% assumed
 
-%foldername = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/2photonAverage/';   %Change to folder above where json file exist for each video you want to combine.
-%
-manual = false;
-%foldername = 'F:\Test_run_pipeline_717';
-
-%files = subdir(fullfile(foldername,'*.json')); % list of filenames (will search all subdirectories)
-%jsonFiles = [];
-%for i = 1:length(files)
-    %jsonFiles = [jsonFiles jsonread(files(i).name)];
-%end
-
-% Json files are assumed to have centroid, dff fields
-distThresh = 8;
-
-%% For one long file enable this only:
 [foldername, dir_nm] = uigetfile('.json');
-filename = fullfile(dir_nm,foldername); % Set the file name using this variable
+fullpath = fullfile(dir_nm,foldername); % Set the file name using this variable
 one_long_file = true;
 if one_long_file
     newNeurons = struct('nid',[],'dff',[]);
-    neurons = jsonread(filename);
+    neurons = jsonread(fullpath);
     for i = 1:length(neurons.jmesh)
         newNeurons(i).nid = i;
         newNeurons(i).dff = neurons.jmesh(i).dff;
     end
     
-    pullTimes = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065],[3465 3495]);
+    pullTimes = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065],[3465 3495]);% One input 
     
     pTA = 100; % frames before and after pull that should be included in the average
     xpoints = (1:length([newNeurons.dff]));
