@@ -4,10 +4,14 @@ close all;
 % Implement automatically choosing files using the filesystem. (Finds all
 % json files in subdirectories).
 
-foldername = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/2photonAverage/';   %Change to folder above where json file exist for each video you want to combine.
+%foldername = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/2photonAverage/';   %Change to folder above where json file exist for each video you want to combine.
 %
-%foldername = '';
-
+manual = false;
+if manual
+    foldername = 'F:\Test_run_pipeline_717';
+else
+    [foldername, dir_nm] = uigetfile('.json');
+end
 files = subdir(fullfile(foldername,'*.json')); % list of filenames (will search all subdirectories)
 jsonFiles = [];
 for i = 1:length(files)
