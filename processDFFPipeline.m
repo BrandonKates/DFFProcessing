@@ -42,16 +42,16 @@ newNeurons = struct('nid',[],'dff',[],'Cd',[],'Sp',[]);
 neurons = jsonread(fullpath);
 for i = 1:length(neurons.jmesh)
     newNeurons(i).nid = i;
-    newNeurons(i).dff = Fdf_concat(i,:);
-    newNeurons(i).Sp = Sp_concat(i,:);
-    newNeurons(i).Cd = Cd_concat(i,:);
+    newNeurons(i).dff = Fdf_concat(i,:)';
+    newNeurons(i).Sp = Sp_concat(i,:)';
+    newNeurons(i).Cd = Cd_concat(i,:)';
 end
 
 %% Initialize variables
 pullTimes = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065],[3465 3495]);% One input 
 
 pTA = 100; % frames before and after pull that should be included in the average
-xpoints = (1:length([newNeurons.dff]));
+xpoints = (1:length([newNeurons.Cd]));
 
 seconds = true;
 framerate = 1;
@@ -60,18 +60,21 @@ if seconds
 end
 
 
+active = [5 6 10 12 14];
+quiesc = [1 2 3 4 11 16];
+indisc = [7 8 9 13 15];
+
+
 badIndices = vertcat(find(vertcat(newNeurons.dff) > 4), find(vertcat(newNeurons.dff) < -1));
 dff = vertcat(newNeurons.dff);
 Cd = vertcat(newNeurons.Cd);
 Sp = vertcat(newNeurons.Sp);
 dff(badIndices) = 0;
 
-
-dff=[newNeurons.dff];
 pulls= struct('pullNum',[],'pullFrames',[],'average',[]);
 pullNum = 1;
 for i = 1:2:length(pullTimes)
-    thisPull = dff(pullTimes(i) - pTA : pullTimes(i+1) + pTA,:);
+    thisPull = Cd(pullTimes(i) - pTA : pullTimes(i+1) + pTA,:);
     meanPull = mean(thisPull,2);
     pulls(pullNum).pullNum = pullNum;
     pulls(pullNum).pullFrames = [pullTimes(i) pullTimes(i+1)];
@@ -79,11 +82,60 @@ for i = 1:2:length(pullTimes)
     pullNum = pullNum + 1;
 end
 
-% Plot All Neurons
-% plot(xpoints/framerate,[newNeurons.dff],'color',[0,0,0]+0.8)
-plot(xpoints/framerate, [newNeurons([5 6 10 12 14]).dff]) % Active Neurons in this file
+%% Start by looking at all neurons plotted on same plot and stacked 
+co = ...
+    [0    0.4470    0.7410;
+    0.8500    0.3250    0.0980;
+    0.9290    0.6940    0.1250;
+    0.4940    0.1840    0.5560;
+    0.4660    0.6740    0.1880;
+    0.3010    0.7450    0.9330;
+    0.6350    0.0780    0.1840];
+% Plot shows all neurons individually plotted on same frame
+figure;
+for i = 1:length(newNeurons)
+    plot(newNeurons(i).Cd)
+    hold on;
+end
+for i = 1:length(pullTimes)
+        plot(repmat(pullTimes(i),1,2),[0 15],'b')     
+end
+% Plot shows all neuron plots stacked.
+figure;
+for i = 1:length(newNeurons)
+    plot(newNeurons(i).Cd + i)
+    hold on;
+end
+
+for i = 1:length(pullTimes)
+        plot(repmat(pullTimes(i),1,2),[0 150],'b')     
+end
+
+
+%% Population, Active, Quiescent, Indiscriminant Averages
+figure;
+plot(xpoints/framerate, mean([newNeurons.Cd],2)+3, 'col', co(1,:)) % Population Average
 hold on;
-plot(xpoints/framerate, mean([newNeurons([5 6 10 12 14]).dff],2),'g')
+plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
+
+plot(xpoints/framerate, mean([newNeurons(quiesc).Cd],2)+1, 'col', co(3,:)) % Quiescent Average
+
+plot(xpoints/framerate, mean([newNeurons(indisc).Cd],2), 'col', co(4,:)) % Indiscriminant Active Average
+
+legend('Population Average','Active Average', 'Quiescent Average', 'Indiscriminant Average')
+plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
+plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
+
+for i = 1:length(pullTimes)
+        plot(repmat(pullTimes(i),1,2)/framerate,[0 3.5],'b')     
+end
+
+%% Plot All Neurons
+% plot(xpoints/framerate,[newNeurons.Cd],'color',[0,0,0]+0.8)
+figure;
+plot(xpoints/framerate, [newNeurons(active).Cd]) % Active Neurons in this file
+hold on;
+plot(xpoints/framerate, mean([newNeurons(active).Cd],2),'g')
 hold on;
 % plot the pullFrames as vertical bars on the graph
 for i = 1:length(pullTimes)
@@ -97,27 +149,23 @@ for i = 1:length(pulls)
 end
 xlabel('Time (s)')
 
-
-active = [5 6 10 12 14];
-quiesc = [1 2 3 4 11 16];
-indisc = [7 8 9 13 15];
-
 %% Plot Active
 figure;
-plot(xpoints/framerate, [newNeurons(active).dff]) % Active Neurons in this file
+plot(xpoints/framerate, [newNeurons(active).Cd]) % Active Neurons in this file
 % Plot vertical bars
 hold on;
 for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2)/framerate,[0 2],'b')     
 end
 hold on;
-plot(xpoints/framerate, mean([newNeurons(active).dff],2),'g')
+plot(xpoints/framerate, mean([newNeurons(active).Cd],2),'g')
 
 %% Stack Active
+figure;
 for i=active
-    plot(xpoints/framerate, [newNeurons(active).dff])
+    plot(xpoints/framerate, [newNeurons(active).Cd])
 end
-plot(xpoints/framerate, mean([newNeurons(active).dff],2))
+plot(xpoints/framerate, mean([newNeurons(active).Cd],2))
 hold on;
 for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2)/framerate,[0 1],'b')     
@@ -126,7 +174,7 @@ end
 pullTimesMod(1:2:length(pullTimes))=pullTimes(1:2:length(pullTimes)) - pTA;
 pullTimesMod(2:2:length(pullTimes))=pullTimes(2:2:length(pullTimes)) + pTA;
 
-dffActive=[newNeurons(active).dff];
+dffActive=[newNeurons(active).Cd];
 pullFrameLength = 225;
 
 neuronPulls = [];
@@ -157,50 +205,3 @@ plot(xp, mean(neuronPullsAvg,2),'r')
 hold on;
 plot([frames,frames],[0,0.4],'b')
 plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
-
-%% Plot all averages
-
-plot(xpoints/framerate, mean([newNeurons.dff],2)+3) % Population Average
-hold on;
-plot(xpoints/framerate, [newNeurons(active).dff]+2, 'color', [0,0,0]+0.8)
-plot(xpoints/framerate, mean([newNeurons(active).dff],2)+2) % Active Average
-
-plot(xpoints/framerate, mean([newNeurons(quiesc).dff],2)+1) % Quiescent Average
-
-plot(xpoints/framerate, mean([newNeurons(indisc).dff],2)) % Indiscriminant Active Average
-
-legend('Population Average','Active Average', 'Quiescent Average', 'Indiscriminant Average')
-
-for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2)/framerate,[0 3.5],'b')     
-end
-
-
-%% Updates the jmesh to have a nid field with the neuron index matched between files.
-% Also attaches neurons with same nid in a new file with just neurons nid
-% and dff values (as a matrix).
-[neurons, newNeurons] = indexNeurons(jsonFiles, distThresh);
-
-
-%% Plot averages of neurons between files
-
-% Plot shows all neurons individually plotted on same frame
-for i = 1:length(newNeurons)
-    plot(mean(newNeurons(i).dff,2))% + i)
-    hold on;
-end
-
-% Plot shows all neuron plots stacked.
-figure;
-for i = 1:length(newNeurons)
-    plot(mean(newNeurons(i).dff,2) + i)
-    hold on;
-end
-
-
-%% Plot as one continuous file
-figure;
-for i=1:length(newNeurons)
-    plot(reshape(newNeurons(i).dff, numel(newNeurons(i).dff),1) + 2*(i-1))
-    hold on;
-end
