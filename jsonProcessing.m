@@ -7,19 +7,20 @@ close all;
 %foldername = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/2photonAverage/';   %Change to folder above where json file exist for each video you want to combine.
 %
 manual = false;
+[foldername, dir_nm] = uigetfile('.json');
 %foldername = 'F:\Test_run_pipeline_717';
 
-%files = subdir(fullfile(foldername,'*.json')); % list of filenames (will search all subdirectories)
-%jsonFiles = [];
-%for i = 1:length(files)
-    %jsonFiles = [jsonFiles jsonread(files(i).name)];
-%end
+files = subdir(fullfile(dir_nm,'*.json')); % list of filenames (will search all subdirectories)
+jsonFiles = [];
+for i = 1:length(files)
+    jsonFiles = [jsonFiles jsonread(files(i).name)];
+end
 
 % Json files are assumed to have centroid, dff fields
 distThresh = 8;
 
 %% For one long file enable this only:
-[foldername, dir_nm] = uigetfile('.json');
+%[foldername, dir_nm] = uigetfile('.json');
 filename = fullfile(dir_nm,foldername); % Set the file name using this variable
 one_long_file = true;
 if one_long_file
