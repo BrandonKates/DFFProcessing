@@ -49,6 +49,9 @@ end
 
 %% Initialize variables
 pullTimes = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065],[3465 3495]);% One input 
+pullTimes2 = 3600 + horzcat([135,165],[360,400],[730,770]);
+pullTimes3 = 7200 + horzcat([963,995],[1308,1340],[1544,1574],[1689,1719]);
+pullTimes = [pullTimes,pullTimes2,pullTimes3];
 
 pTA = 100; % frames before and after pull that should be included in the average
 xpoints = (1:length([newNeurons.Cd]));
