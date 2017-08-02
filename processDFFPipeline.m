@@ -129,8 +129,8 @@ plot(xpoints/framerate, mean([newNeurons(quiesc).Cd],2)+1, 'col', co(3,:)) % Qui
 plot(xpoints/framerate, mean([newNeurons(indisc).Cd],2), 'col', co(4,:)) % Indiscriminant Active Average
 
 legend('Population Average','Active Average', 'Quiescent Average', 'Indiscriminant Average')
-%plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
-%plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
+plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
+plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
 
 for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2)/framerate,[0 3.5],'b')     
