@@ -59,19 +59,19 @@ xpoints = (1:length([newNeurons.Cd]));
 seconds = true;
 framerate = 1;
 if seconds
-    framerate = 30.31;
+    framerate = 30.305;
 end
 
 
-active = [5 6 10 12 14];
-quiesc = [1 2 3 4 11 16];
-indisc = [7 8 9 13 15];
+active = [];
+quiesc = [];
+indisc = [];
 
 
 badIndices = vertcat(find(vertcat(newNeurons.dff) > 4), find(vertcat(newNeurons.dff) < -1));
-dff = vertcat(newNeurons.dff);
-Cd = vertcat(newNeurons.Cd);
-Sp = vertcat(newNeurons.Sp);
+dff = horzcat(newNeurons.dff);
+Cd = horzcat(newNeurons.Cd);
+Sp = horzcat(newNeurons.Sp);
 dff(badIndices) = 0;
 
 pulls= struct('pullNum',[],'pullFrames',[],'average',[]);
@@ -208,3 +208,33 @@ plot(xp, mean(neuronPullsAvg,2),'r')
 hold on;
 plot([frames,frames],[0,0.4],'b')
 plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
+
+
+
+%% Find active, quiescent, indiscriminant automatically.
+for i = 1:100
+    figure;
+    plot(xp, Sp(pullTimes(1)-100:pullTimes(2)+93,i),'r')
+    hold on;
+    plot([frames,frames],[0,0.4],'b')
+    plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
+    legend(int2str(i))
+    pause(2);
+    close;
+end
+
+%% Plot an invidual neuron with pullframe bars - Deconvolved
+nnum=5;
+plot(Cd(:,nnum))
+hold on;
+for i = 1:length(pullTimes)
+        plot(repmat(pullTimes(i),1,2),[0 5],'b')     
+end
+
+% Plot an invidual neuron with pullframe bars - Spike
+figure;
+plot(Sp(:,nnum))
+hold on;
+for i = 1:length(pullTimes)
+        plot(repmat(pullTimes(i),1,2),[0 2],'b')     
+end
