@@ -63,10 +63,12 @@ if seconds
 end
 
 
-active = [];
-quiesc = [];
-indisc = [];
+neuronClass = [3, 2, 1, 2, 1, 1, 3, 1, 3, 2, 1, 1, 1, 3, 3, 3, 3, 3, 2, 3, ... 
+    3, 3, 3, 3, 2, 3, 3, 1, 1, 3, 3, 2, 3, 1, 1, 2, 3, 1, 1, 3, 2, 1, 2, 1, 1, 2, 3, 3, 1];
 
+active = find(neuronClass==1);
+quiesc = find(neuronClass==2);
+indisc = find(neuronClass==3);
 
 badIndices = vertcat(find(vertcat(newNeurons.dff) > 4), find(vertcat(newNeurons.dff) < -1));
 dff = horzcat(newNeurons.dff);
@@ -87,7 +89,7 @@ end
 
 %% Start by looking at all neurons plotted on same plot and stacked 
 co = ...
-    [0    0.4470    0.7410;
+    [0        0.4470    0.7410;
     0.8500    0.3250    0.0980;
     0.9290    0.6940    0.1250;
     0.4940    0.1840    0.5560;
@@ -108,6 +110,7 @@ figure;
 for i = 1:length(newNeurons)
     plot(newNeurons(i).Cd + i)
     hold on;
+    set(gca,'YTick',[])
 end
 
 for i = 1:length(pullTimes)
@@ -126,12 +129,13 @@ plot(xpoints/framerate, mean([newNeurons(quiesc).Cd],2)+1, 'col', co(3,:)) % Qui
 plot(xpoints/framerate, mean([newNeurons(indisc).Cd],2), 'col', co(4,:)) % Indiscriminant Active Average
 
 legend('Population Average','Active Average', 'Quiescent Average', 'Indiscriminant Average')
-plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
-plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
+%plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
+%plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
 
 for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2)/framerate,[0 3.5],'b')     
 end
+set(gca,'YTick',[])
 
 %% Plot All Neurons
 % plot(xpoints/framerate,[newNeurons.Cd],'color',[0,0,0]+0.8)
@@ -212,7 +216,7 @@ plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
 
 
 %% Find active, quiescent, indiscriminant automatically.
-for i = 1:100
+%for i = 1:100
     figure;
     plot(xp, Sp(pullTimes(1)-100:pullTimes(2)+93,i),'r')
     hold on;
@@ -220,21 +224,27 @@ for i = 1:100
     plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
     legend(int2str(i))
     pause(2);
-    close;
-end
+    %close;
+%end
 
 %% Plot an invidual neuron with pullframe bars - Deconvolved
-nnum=5;
-plot(Cd(:,nnum))
+figure;
+%nnum=5;
+for nnum = 1:size(Cd,2)
+plot(1:5000,Cd(1:5000,nnum))
 hold on;
-for i = 1:length(pullTimes)
+for i = 1:length(pullTimes)-10
         plot(repmat(pullTimes(i),1,2),[0 5],'b')     
+end
+legend(num2str(nnum));
+pause();
+close;
 end
 
 % Plot an invidual neuron with pullframe bars - Spike
 figure;
-plot(Sp(:,nnum))
+plot(1:5000, Sp(1:5000,nnum))
 hold on;
-for i = 1:length(pullTimes)
+for i = 1:length(pullTimes)-10
         plot(repmat(pullTimes(i),1,2),[0 2],'b')     
 end
