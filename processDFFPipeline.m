@@ -105,19 +105,24 @@ end
 for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2),[0 15],'b')     
 end
-% Plot shows all neuron plots stacked.
+%% Plot shows all neuron plots stacked.
 figure;
 for i = 1:length(newNeurons)
-    plot(newNeurons(i).Cd + i)
+    plot(xpoints/framerate, newNeurons(i).Cd + i)
     hold on;
-    set(gca,'YTick',[])
 end
-
 for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2),[0 150],'b')     
+        plot(repmat(pullTimes(i),1,2)/framerate,[0 length(newNeurons)+1],'b')     
 end
+nvs = gca;
+nvs.XTick = 0:50:max(xpoints/framerate);
+nvs.YTick = 0:10:length(newNeurons);
+xlabel('Time (seconds)');
+ylabel('Neuron ID');
 
+set(gca,'LooseInset',get(gca,'TightInset'));
 
+%print -painters -dpng -r600 /Users/User/Desktop/717/allneurons3D.png
 %% Population, Active, Quiescent, Indiscriminant Averages
 figure;
 plot(xpoints/framerate, mean([newNeurons.Cd],2)+3, 'col', co(1,:)) % Population Average
@@ -129,8 +134,8 @@ plot(xpoints/framerate, mean([newNeurons(quiesc).Cd],2)+1, 'col', co(3,:)) % Qui
 plot(xpoints/framerate, mean([newNeurons(indisc).Cd],2), 'col', co(4,:)) % Indiscriminant Active Average
 
 legend('Population Average','Active Average', 'Quiescent Average', 'Indiscriminant Average')
-plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
-plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
+%plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
+%plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
 
 for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2)/framerate,[0 3.5],'b')     
