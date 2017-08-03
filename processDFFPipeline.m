@@ -21,7 +21,6 @@ if(exist(fullfile(dir_nm, 'Sp.mat'),'file'))
     load(fullfile(dir_nm, 'Sp.mat'))
 end
 
-
 %% Create a new struct with neuron data (nid, dff, Cd, and Sp) concatenated by time
 Fdf_concat = [];
 Sp_concat = [];
@@ -63,8 +62,7 @@ if seconds
 end
 
 
-neuronClass = [3, 2, 1, 2, 1, 1, 3, 1, 3, 2, 1, 1, 1, 3, 3, 3, 3, 3, 2, 3, ... 
-    3, 3, 3, 3, 2, 3, 3, 1, 1, 3, 3, 2, 3, 1, 1, 2, 3, 1, 1, 3, 2, 1, 2, 1, 1, 2, 3, 3, 1];
+neuronClass = csvread('\Users\User\Desktop\717\neuronClassification717.csv');
 
 active = find(neuronClass==1);
 quiesc = find(neuronClass==2);
@@ -133,14 +131,21 @@ plot(xpoints/framerate, mean([newNeurons(quiesc).Cd],2)+1, 'col', co(3,:)) % Qui
 
 plot(xpoints/framerate, mean([newNeurons(indisc).Cd],2), 'col', co(4,:)) % Indiscriminant Active Average
 
-legend('Population Average','Active Average', 'Quiescent Average', 'Indiscriminant Average')
+lgd = legend(['Population Average (n=' num2str(length(newNeurons)) ')'], ...
+    ['Active Average (n=' num2str(length(active)) ')'], ...
+    ['Quiescent Average (n=' num2str(length(quiesc)) ')'], ...
+    ['Indiscriminant Average (n=' num2str(length(indisc)) ')']);
 %plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
 %plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
-
+lgd.FontSize = 14;
 for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2)/framerate,[0 3.5],'b')     
 end
 set(gca,'YTick',[])
+xlabel('Time (seconds)');
+set(gca,'LooseInset',get(gca,'TightInset'));
+
+%print -painters -dpng -r600 /Users/User/Desktop/717/neuronClasses3D.png
 
 %% Plot All Neurons
 % plot(xpoints/framerate,[newNeurons.Cd],'color',[0,0,0]+0.8)
@@ -233,20 +238,22 @@ plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
 %end
 
 %% Plot an invidual neuron with pullframe bars - Deconvolved
-figure;
 %nnum=5;
-for nnum = 1:size(Cd,2)
-plot(1:5000,Cd(1:5000,nnum))
+figure('units','normalized','outerposition',[0 0 1 1])
+lineinit = plot(Cd(:,nnum));
 hold on;
-for i = 1:length(pullTimes)-10
+for i = 1:length(pullTimes)
         plot(repmat(pullTimes(i),1,2),[0 5],'b')     
 end
-legend(num2str(nnum));
-pause();
-close;
+lineinit.Visible = 'Off';
+for nnum = 1:size(Cd,2)
+    line = plot(Cd(:,nnum));
+    legend(num2str(nnum));
+    pause();
+    line.Visible = 'Off';
 end
 
-% Plot an invidual neuron with pullframe bars - Spike
+%% Plot an invidual neuron with pullframe bars - Spike
 figure;
 plot(1:5000, Sp(1:5000,nnum))
 hold on;
