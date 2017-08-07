@@ -73,7 +73,7 @@ function [ newNeurons, fluorescenceData, classifications, binaryPullTimes,pulls,
     pullNum = 1;
     for i = 1:2:length(pullFrames)
         thisPull = Cd_concat(:,pullFrames(i) - pTA : pullFrames(i+1) + pTA);
-        meanPull = mean(thisPull,2);
+        meanPull = mean(thisPull,1);
         pulls(pullNum).pullNum = pullNum;
         pulls(pullNum).pullFrames = [pullFrames(i) pullFrames(i+1)];
         pulls(pullNum).average = meanPull;

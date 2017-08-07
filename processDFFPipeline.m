@@ -13,11 +13,26 @@ pullFrames = horzcat(pullFrames, 7200 + horzcat([963,995],[1308,1340],[1544,1574
 
 dir = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/717and720/#717_7.11.17/';
 %pullFrames = [];
-fr = 30.305;
+fr = 30.305; % Set the framerate for graphing
 autoClassifyNeurons = true;
-pTA = 50; % frames before and after pull that should be included in the average
+pTA = 100; % frames before and after pull that should be included in the average
 
 [newNeurons,fluorescenceData,classifications,binaryPullTimes,pulls,options] = processDFFInitVars(dir,pullFrames,fr,autoClassifyNeurons,pTA);
+% Unpack Data from function call
+numFrames = options.numFrames;
+numNeurons = options.numNeurons;
+xpoints = options.xpoints;
+framerate = options.framerate;
+pTA = options.pTA;
+%
+Fdf = fluorescenceData.Fdf;
+Cd = fluorescenceData.Cd;
+Sp = fluorescenceData.Sp;
+%
+
+dff = Cd';% Fdf,Cd, or Sp
+
+
 %% Start by looking at all neurons plotted on same plot and stacked 
 co = ...
     [0        0.4470    0.7410;
@@ -27,27 +42,22 @@ co = ...
     0.4660    0.6740    0.1880;
     0.3010    0.7450    0.9330;
     0.6350    0.0780    0.1840];
+
 % Plot shows all neurons individually plotted on same frame
 figure;
-for i = 1:length(newNeurons)
-    plot(newNeurons(i).Cd)
-    hold on;
-end
-for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2),[0 15],'b')     
-end
+plot(xpoints/framerate, dff)
+hold on;
+plot(xpoints/framerate, binaryPullTimes * max(dff(:)),'b')
+
 %% Plot shows all neuron plots stacked.
 figure;
-for i = 1:length(newNeurons)
-    plot(xpoints/framerate, newNeurons(i).Cd + i)
-    hold on;
-end
-for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2)/framerate,[0 length(newNeurons)+1],'b')     
-end
+plot(xpoints/framerate, bsxfun(@plus,dff,0:numNeurons-1))
+hold on;
+plot(xpoints/framerate, binaryPullTimes * numNeurons,'b')
+
 nvs = gca;
 nvs.XTick = 0:50:max(xpoints/framerate);
-nvs.YTick = 0:10:length(newNeurons);
+nvs.YTick = 0:10:numNeurons;
 xlabel('Time (seconds)');
 ylabel('Neuron ID');
 
@@ -58,25 +68,29 @@ set(gca,'LooseInset',get(gca,'TightInset'));
 %Everything/Burke Research ''17/Dr. Hollis
 %Lab/717and720/#717_7.11.17/allneurons3D.png
 %% Population, Active, Quiescent, Indiscriminant Averages
+active = classifications.active;
+quiesc = classifications.quiescent;
+indisc = classifications.indisc;
+
 figure;
-plot(xpoints/framerate, mean([newNeurons.Cd],2)+3, 'col', co(1,:)) % Population Average
+plot(xpoints/framerate, mean(dff,2)+3, 'col', co(1,:)) % Population Average
 hold on;
-plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
+plot(xpoints/framerate, mean(dff(:,active),2)+2, 'col', co(2,:)) % Active Average
 
-plot(xpoints/framerate, mean([newNeurons(quiesc).Cd],2)+1, 'col', co(3,:)) % Quiescent Average
+plot(xpoints/framerate, mean(dff(:,quiesc),2)+1, 'col', co(3,:)) % Quiescent Average
 
-plot(xpoints/framerate, mean([newNeurons(indisc).Cd],2), 'col', co(4,:)) % Indiscriminant Active Average
+plot(xpoints/framerate, mean(dff(:,indisc),2), 'col', co(4,:)) % Indiscriminant Active Average
 
 lgd = legend(['Population Average (n=' num2str(length(newNeurons)) ')'], ...
     ['Active Average (n=' num2str(length(active)) ')'], ...
     ['Quiescent Average (n=' num2str(length(quiesc)) ')'], ...
     ['Indiscriminant Average (n=' num2str(length(indisc)) ')']);
-%plot(xpoints/framerate, [newNeurons(active).Cd]+2, 'color', [0,0,0]+0.8)
-%plot(xpoints/framerate, mean([newNeurons(active).Cd],2)+2, 'col', co(2,:)) % Active Average
-lgd.FontSize = 14;
-for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2)/framerate,[0 3.5],'b')     
-end
+% plot(xpoints/framerate, mean(dffActive,2)+2,'color', [0,0,0]+0.8)
+% plot(xpoints/framerate, mean(dffActive,2)+2, 'col', co(2,:)) % Active Average
+
+lgd.FontSize = 24;
+plot(xpoints/framerate, binaryPullTimes*4,'b')
+
 set(gca,'YTick',[])
 xlabel('Time (seconds)');
 set(gca,'fontsize',24)
@@ -86,16 +100,16 @@ set(gca,'LooseInset',get(gca,'TightInset'));
 %/Users/User/Desktop/717/neuronClasses3D.png
 
 %% Plot All Neurons
+dffActive=dff(:,active);
 % plot(xpoints/framerate,[newNeurons.Cd],'color',[0,0,0]+0.8)
 figure;
-plot(xpoints/framerate, [newNeurons(active).Cd]) % Active Neurons in this file
+plot(xpoints/framerate, dffActive) % Active Neurons in this file
 hold on;
-plot(xpoints/framerate, mean([newNeurons(active).Cd],2),'g')
+plot(xpoints/framerate, mean(dffActive,2),'g')
 hold on;
 % plot the pullFrames as vertical bars on the graph
-for i = 1:length(pullTimes)
-    plot(repmat(pullTimes(i),1,2)/framerate,[0 2],'b')     
-end
+plot(xpoints/framerate, binaryPullTimes * max(max(dffActive)),'b')
+
 %plot the averages of the pullframes
 for i = 1:length(pulls)
     pull = pulls(i).pullFrames;
@@ -106,30 +120,22 @@ xlabel('Time (s)')
 
 %% Plot Active
 figure;
-plot(xpoints/framerate, [newNeurons(active).Cd]) % Active Neurons in this file
+plot(xpoints/framerate, dffActive) % Active Neurons in this file
 % Plot vertical bars
 hold on;
-for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2)/framerate,[0 2],'b')     
-end
-hold on;
-plot(xpoints/framerate, mean([newNeurons(active).Cd],2),'g')
+plot(xpoints/framerate, binaryPullTimes * max(max(dffActive)),'b')
+plot(xpoints/framerate, mean(dffActive,2),'g')
 
 %% Stack Active
 figure;
-for i=active
-    plot(xpoints/framerate, [newNeurons(active).Cd])
-end
-plot(xpoints/framerate, mean([newNeurons(active).Cd],2))
+plot(xpoints/framerate, dffActive)
 hold on;
-for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2)/framerate,[0 1],'b')     
-end
+plot(xpoints/framerate, mean(dffActive,2))
+plot(xpoints/framerate, binaryPullTimes * max(max(dffActive)),'b')
 
-pullTimesMod(1:2:length(pullTimes))=pullTimes(1:2:length(pullTimes)) - pTA;
-pullTimesMod(2:2:length(pullTimes))=pullTimes(2:2:length(pullTimes)) + pTA;
+pullTimesMod(1:2:length(pullFrames))=pullFrames(1:2:length(pullFrames)) - pTA;
+pullTimesMod(2:2:length(pullFrames))=pullFrames(2:2:length(pullFrames)) + pTA;
 
-dffActive=[newNeurons(active).Cd];
 pullFrameLength = 225;
 
 neuronPulls = [];
@@ -139,7 +145,7 @@ for i = 1:2:length(pullTimesMod)
 end
 
 neuronPullsAvg = [];
-for i = 1:length([newNeurons(active)])
+for i = 1:length(active)
     neuronPullsSize = size(neuronPulls);
     neuronPullsLength = neuronPullsSize(2);
     neuronPullsAvg = horzcat(neuronPullsAvg, mean(neuronPulls(:,i:length([newNeurons(active)]):neuronPullsLength),2));
@@ -147,7 +153,7 @@ end
 
 %% Individual Neurons averaged to one mouse pull.
 figure;
-xp = (1:length(neuronPullsAvg))/framerate;
+xp = (1:pullFrameLength)/framerate;
 plot(xp, neuronPullsAvg)
 hold on;
 frames = pTA / framerate;
@@ -162,39 +168,29 @@ plot([frames,frames],[0,0.4],'b')
 plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
 
 
-
-%% Find active, quiescent, indiscriminant automatically.
+% %% Find active, quiescent, indiscriminant automatically.
 %for i = 1:100
-    figure;
-    plot(xp, Sp(pullTimes(1)-100:pullTimes(2)+93,i),'r')
-    hold on;
-    plot([frames,frames],[0,0.4],'b')
-    plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
-    legend(int2str(i))
-    pause(2);
+    %figure;
+    %plot(xp, Sp(i,pullFrames(1)-100:pullFrames(2)+93),'r')
+    %hold on;
+    %plot([frames,frames],[0,0.4],'b')
+    %plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.4],'b')
+    %legend(int2str(i))
+    %pause(2);
     %close;
 %end
 
 %% Plot an invidual neuron with pullframe bars - Deconvolved
-%nnum=5;
+nnum=1;
 figure('units','normalized','outerposition',[0 0 1 1])
 lineinit = plot(Cd(:,nnum));
 hold on;
-for i = 1:length(pullTimes)
-        plot(repmat(pullTimes(i),1,2),[0 5],'b')     
-end
 lineinit.Visible = 'Off';
 for nnum = 1:size(Cd,2)
     line = plot(Cd(:,nnum));
+    bars = plot(xpoints/framerate, binaryPullTimes * max(Cd(:,nnum)),'b');
     legend(num2str(nnum));
     pause();
     line.Visible = 'Off';
-end
-
-%% Plot an invidual neuron with pullframe bars - Spike
-figure;
-plot(1:5000, Sp(1:5000,nnum))
-hold on;
-for i = 1:length(pullTimes)-10
-        plot(repmat(pullTimes(i),1,2),[0 2],'b')     
+    bars.Visible = 'Off'; 
 end
