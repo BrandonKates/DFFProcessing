@@ -2,112 +2,22 @@ clear;
 close all;
 %%Uses a single json file that contains only the centroids, and loads in
 %%dff, Cd, and Sp mat files from directory
-% Json files are assumed to have centroid field, and nothing else is
-% assumed
 
-%% Find the json file
-[foldername, dir_nm] = uigetfile('.json');
-fullpath = fullfile(dir_nm,foldername); % Set the file name using this variable
-
-%% Load in variables for dff extraction from same directory.
-
-if(exist(fullfile(dir_nm, 'Fdf.mat'),'file'))
-    load(fullfile(dir_nm, 'Fdf.mat'))
-end
-if(exist(fullfile(dir_nm, 'Cd.mat'),'file'))
-    load(fullfile(dir_nm, 'Cd.mat'))
-end
-if(exist(fullfile(dir_nm, 'Sp.mat'),'file'))
-    load(fullfile(dir_nm, 'Sp.mat'))
-end
-
-%% Create a new struct with neuron data (nid, dff, Cd, and Sp) concatenated by time
-Fdf_concat = [];
-Sp_concat = [];
-Cd_concat = [];
-for i = 1:length(F_df)
-    if(exist('F_df','var'))
-        Fdf_concat = horzcat(Fdf_concat, cell2mat(F_df(i)));
-    end
-    if(exist('Sp','var'))
-        Sp_concat = horzcat(Sp_concat, cell2mat(Sp(i)));
-    end
-    if(exist('Cd','var'))
-        Cd_concat = horzcat(Cd_concat, cell2mat(Cd(i)));
-    end
-end
-
-newNeurons = struct('nid',[],'dff',[],'Cd',[],'Sp',[]);
-neurons = jsonread(fullpath);
-for i = 1:length(neurons.jmesh)
-    newNeurons(i).nid = i;
-    newNeurons(i).dff = Fdf_concat(i,:)';
-    newNeurons(i).Sp = Sp_concat(i,:)';
-    newNeurons(i).Cd = Cd_concat(i,:)';
-end
+%function [ newNeurons, fluorescenceData, classifications, binaryPullTimes,options] = processDFFInitVars(dir, pullFrames, fr, autoClassifyNeurons, pTA)
+%[newNeurons,fluorescenceData,classifications,binaryPullTimes,pulls,options] = processDFFInitVars([],[1 2],1,0,100);
 
 %% Initialize variables
-numFrames = length(Cd_concat);
-pullTimes = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065],[3465 3495]);% One input 
-pullTimes2 = 3600 + horzcat([135,165],[360,400],[730,770]);
-pullTimes3 = 7200 + horzcat([963,995],[1308,1340],[1544,1574],[1689,1719]);
-pullTimes = [pullTimes,pullTimes2,pullTimes3];
+pullFrames = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065],[3465 3495]);% One input 
+pullFrames = horzcat(pullFrames, 3600 + horzcat([135,165],[360,400],[730,770]));
+pullFrames = horzcat(pullFrames, 7200 + horzcat([963,995],[1308,1340],[1544,1574],[1689,1719]));
 
-pTA = 100; % frames before and after pull that should be included in the average
-xpoints = (1:length([newNeurons.Cd]));
+dir = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/717and720/#717_7.11.17/';
+%pullFrames = [];
+fr = 30.305;
+autoClassifyNeurons = true;
+pTA = 50; % frames before and after pull that should be included in the average
 
-seconds = true;
-framerate = 1;
-if seconds
-    framerate = 30.305;
-end
-
-
-neuronClass = csvread(fullfile(dir_nm,'neuronClassification717.csv'));
-
-active = find(neuronClass==1);
-quiesc = find(neuronClass==2);
-indisc = find(neuronClass==3);
-
-badIndices = vertcat(find(vertcat(newNeurons.dff) > 4), find(vertcat(newNeurons.dff) < -1));
-dff = horzcat(newNeurons.dff);
-Cd = horzcat(newNeurons.Cd);
-Sp = horzcat(newNeurons.Sp);
-dff(badIndices) = 0;
-
-pulls= struct('pullNum',[],'pullFrames',[],'average',[]);
-pullNum = 1;
-for i = 1:2:length(pullTimes)
-    thisPull = Cd(pullTimes(i) - pTA : pullTimes(i+1) + pTA,:);
-    meanPull = mean(thisPull,2);
-    pulls(pullNum).pullNum = pullNum;
-    pulls(pullNum).pullFrames = [pullTimes(i) pullTimes(i+1)];
-    pulls(pullNum).average = meanPull;
-    pullNum = pullNum + 1;
-end
-
-
-%% Initialize Data Frame for Classifying Cells as Active or Quiescent Active
-% data(3).im(2).roi_trace_thresh(10,:) % Third Animal on second days 10th roi
-% Data Struct - first input
-data=struct('im',[]);
-data.im = struct('roi_trace_thresh',Cd_concat,'roi_trace_df',Cd_concat);
-
-% Analysis Struct - second input
-% analysis(3).lever(2).lever_move_frames(:,1) % Third Animal on the Second
-% day - binarized movement frames
-analysis = struct('lever',[]);
-analysis.lever = struct('lever_move_frames',[]);
-
-binaryPullTimes = zeros(1,numFrames);
-for i = 1:2:length(pullTimes)
-    binaryPullTimes(pullTimes(i):pullTimes(i+1)) = 1;
-end
-analysis(1).lever(1).lever_move_frames = binaryPullTimes';
-
-%% Try out classification function
-[classified_rois, classified_p] = AP_classify_movement_cells_continuous(data,analysis);
-
+[newNeurons,fluorescenceData,classifications,binaryPullTimes,pulls,options] = processDFFInitVars(dir,pullFrames,fr,autoClassifyNeurons,pTA);
 %% Start by looking at all neurons plotted on same plot and stacked 
 co = ...
     [0        0.4470    0.7410;
@@ -141,9 +51,12 @@ nvs.YTick = 0:10:length(newNeurons);
 xlabel('Time (seconds)');
 ylabel('Neuron ID');
 
+set(gca,'fontsize',24)
 set(gca,'LooseInset',get(gca,'TightInset'));
 
-%print -painters -dpng -r600 /Users/User/Desktop/717/allneurons3D.png
+%print -painters -dpng -r600 /Users/Brandon/Documents/Brandon
+%Everything/Burke Research ''17/Dr. Hollis
+%Lab/717and720/#717_7.11.17/allneurons3D.png
 %% Population, Active, Quiescent, Indiscriminant Averages
 figure;
 plot(xpoints/framerate, mean([newNeurons.Cd],2)+3, 'col', co(1,:)) % Population Average
@@ -166,9 +79,11 @@ for i = 1:length(pullTimes)
 end
 set(gca,'YTick',[])
 xlabel('Time (seconds)');
+set(gca,'fontsize',24)
 set(gca,'LooseInset',get(gca,'TightInset'));
 
-%print -painters -dpng -r600 /Users/User/Desktop/717/neuronClasses3D.png
+%print -painters -dpng -r600 '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/717and720/#717_7.11.17/neuronClasses3D.png'
+%/Users/User/Desktop/717/neuronClasses3D.png
 
 %% Plot All Neurons
 % plot(xpoints/framerate,[newNeurons.Cd],'color',[0,0,0]+0.8)

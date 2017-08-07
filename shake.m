@@ -41,7 +41,7 @@ function [Y, I, J] = shake(X,dim)
 % 4.0 (dec 2006) : fixed major error in 3.0
 % 4.1 (may 2008) : fixed error for scalar input
 
-error(nargchk(1,2,nargin)) ;
+narginchk(1,2);
 
 if nargin==1, 
     dim = min(find(size(X)>1)) ;
