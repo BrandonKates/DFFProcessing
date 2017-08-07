@@ -47,6 +47,7 @@ for i = 1:length(neurons.jmesh)
 end
 
 %% Initialize variables
+numFrames = length(Cd_concat);
 pullTimes = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065],[3465 3495]);% One input 
 pullTimes2 = 3600 + horzcat([135,165],[360,400],[730,770]);
 pullTimes3 = 7200 + horzcat([963,995],[1308,1340],[1544,1574],[1689,1719]);
@@ -62,7 +63,7 @@ if seconds
 end
 
 
-neuronClass = csvread('\Users\User\Desktop\717\neuronClassification717.csv');
+neuronClass = csvread(fullfile(dir_nm,'neuronClassification717.csv'));
 
 active = find(neuronClass==1);
 quiesc = find(neuronClass==2);
@@ -84,6 +85,28 @@ for i = 1:2:length(pullTimes)
     pulls(pullNum).average = meanPull;
     pullNum = pullNum + 1;
 end
+
+
+%% Initialize Data Frame for Classifying Cells as Active or Quiescent Active
+% data(3).im(2).roi_trace_thresh(10,:) % Third Animal on second days 10th roi
+% Data Struct - first input
+data=struct('im',[]);
+data.im = struct('roi_trace_thresh',Cd_concat,'roi_trace_df',Cd_concat);
+
+% Analysis Struct - second input
+% analysis(3).lever(2).lever_move_frames(:,1) % Third Animal on the Second
+% day - binarized movement frames
+analysis = struct('lever',[]);
+analysis.lever = struct('lever_move_frames',[]);
+
+binaryPullTimes = zeros(1,numFrames);
+for i = 1:2:length(pullTimes)
+    binaryPullTimes(pullTimes(i):pullTimes(i+1)) = 1;
+end
+analysis(1).lever(1).lever_move_frames = binaryPullTimes';
+
+%% Try out classification function
+[classified_rois, classified_p] = AP_classify_movement_cells_continuous(data,analysis);
 
 %% Start by looking at all neurons plotted on same plot and stacked 
 co = ...
