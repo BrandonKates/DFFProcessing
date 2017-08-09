@@ -11,10 +11,11 @@ pullFrames = horzcat([1144 1175],[1515 1545],[1700 1735],[2445 2475],[3035 3065]
 pullFrames = horzcat(pullFrames, 3600 + horzcat([135,165],[360,400],[730,770]));
 pullFrames = horzcat(pullFrames, 7200 + horzcat([963,995],[1308,1340],[1544,1574],[1689,1719]));
 
-dir = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/717and720/#717_7.11.17/';
+%dir = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/717and720/#717_7.11.17/'; % 
+dir = '';
 %pullFrames = [];
-fr = 30.305; % Set the framerate for graphing
-autoClassifyNeurons = true;
+fr = 30.305; % Set the framerate for graphing, 1=frames
+autoClassifyNeurons = false;
 pTA = 100; % frames before and after pull that should be included in the average
 
 [newNeurons,fluorescenceData,classifications,binaryPullTimes,pulls,options] = processDFFInitVars(dir,pullFrames,fr,autoClassifyNeurons,pTA);
@@ -35,6 +36,7 @@ dff = Cd'; % Fdf,Cd, or Sp
 
 
 %% Start by looking at all neurons plotted on same plot and stacked 
+% Colors
 co = ...
     [0        0.4470    0.7410;
     0.8500    0.3250    0.0980;
@@ -55,7 +57,7 @@ if framerate ~= 1
 else
     xlabel('Frame');
 end
-ylabel('?F/F0');
+ylabel('DF/F0');
 %% Plot shows all neuron plots stacked.
 figure;
 plot(xpoints/framerate, bsxfun(@plus,dff,0:numNeurons-1))
@@ -100,7 +102,7 @@ lgd = legend(['Population Average (n=' num2str(length(newNeurons)) ')'], ...
 % plot(xpoints/framerate, mean(dffActive,2)+2, 'col', co(2,:)) % Active Average
 
 lgd.FontSize = 24;
-plot(xpoints/framerate, binaryPullTimes*4,'b')
+plot(xpoints/framerate, binaryPullTimes*4,'b') % Pull Bars
 
 set(gca,'YTick',[])
 xlabel('Time (seconds)');
@@ -153,8 +155,8 @@ xp = (1:pullFrameLength)/framerate;
 plot(xp, neuronPullsAvg)
 hold on;
 frames = pTA / framerate;
-plot([frames,frames],[0,0.6],'b')
-plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,0.6],'b')
+plot([frames,frames],[0,2],'b')
+plot([(pTA+35)/framerate,(pTA+35)/framerate],[0,2],'b')
 
 %% Total Average in one pull period
 figure;
