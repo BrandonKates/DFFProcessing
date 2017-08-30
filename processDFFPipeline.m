@@ -14,6 +14,9 @@ pullFrames = horzcat(pullFrames, 7200 + horzcat([963,995],[1308,1340],[1544,1574
 %dir = '/Users/Brandon/Documents/Brandon Everything/Burke Research ''17/Dr. Hollis Lab/717and720/#717_7.11.17/'; % 
 dir = '';
 %pullFrames = [];
+numVideos = 10;
+
+
 fr = 30.305; % Set the framerate for graphing, 1=frames
 autoClassifyNeurons = false;
 pTA = 100; % frames before and after pull that should be included in the average
